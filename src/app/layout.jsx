@@ -3,12 +3,18 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata = {
   metadataBase: new URL("https://emglodai.vercel.app"),
+
   title: {
     default: "EmGlodAi — One box. Every tool.",
     template: "%s | EmGlodAi",
   },
+
   description:
     "Chat, research, generate images and video, plan your schedule, and more — all from a single command bar.",
+
+  verification: {
+    google: "xoaLjp_cHY4SLbcqmco0QOXGqfY-2Adklq-ox6QOXGqfY-2Adklq-ox6Qq3KM",
+  },
   openGraph: {
     title: "EmGlodAi — One box. Every tool.",
     description:
