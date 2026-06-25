@@ -1,5 +1,6 @@
 import { verifyUser } from "@/lib/verifyUser";
 import { webSearch } from "@/lib/webSearch";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const SYSTEM_PROMPTS = {
   chat: "You are a helpful, accurate assistant. Keep responses concise and conversational unless the user asks for more depth.",
@@ -126,6 +127,20 @@ export async function POST(req) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { data: creditRow, error: creditError } = await supabaseAdmin
+    .from("user_credits")
+    .select("credits")
+    .eq("user_id", user.id)
+    .single();
+
+  if (creditError || !creditRow) {
+    return Response.json({ error: "Could not verify your credit balance." }, { status: 500 });
+  }
+
+  if (creditRow.credits <= 0) {
+    return Response.json({ error: "You're out of credits." }, { status: 402 });
+  }
+
   const { messages, tool, length } = await req.json();
   const apiKey = process.env.GROQ_API_KEY;
   const basePrompt = SYSTEM_PROMPTS[tool] || SYSTEM_PROMPTS.chat;
@@ -172,8 +187,14 @@ export async function POST(req) {
       assistantMessage = await callGroq(apiKey, model, groqMessages, useTools);
     }
 
+    const newBalance = creditRow.credits - 1;
+    await supabaseAdmin
+      .from("user_credits")
+      .update({ credits: newBalance, updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+
     const text = stripLatex(assistantMessage?.content) || "No response.";
-return Response.json({ text });
+    return Response.json({ text, creditsRemaining: newBalance });
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
   }

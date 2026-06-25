@@ -8,8 +8,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToolRail, TOOLS } from "@/components/ToolRail";
 import { CommandBar } from "@/components/CommandBar";
 import { ChatMessage } from "@/components/ChatMessage";
-import { LogOut, Menu, X, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { LengthToggle } from "@/components/LengthToggle";
+import { LogOut, Menu, X, Plus, MessageSquare, Trash2, Zap } from "lucide-react";
 
 export default function HubPage() {
   const router = useRouter();
@@ -22,6 +22,7 @@ export default function HubPage() {
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const scrollRef = useRef(null);
+  const [credits, setCredits] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -36,8 +37,20 @@ export default function HubPage() {
   }, [router]);
 
   useEffect(() => {
-    if (session) loadConversations();
-  }, [session]);
+  if (session) {
+    loadConversations();
+    loadCredits();
+  }
+}, [session]);
+
+async function loadCredits() {
+  const { data } = await supabase
+    .from("user_credits")
+    .select("credits")
+    .eq("user_id", session.user.id)
+    .single();
+  if (data) setCredits(data.credits);
+}
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -136,16 +149,17 @@ export default function HubPage() {
 
     try {
       const res = await fetch("/api/chat", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${session.access_token}`,
-  },
-  body: JSON.stringify({ messages: nextMessages, tool: activeTool, length: responseLength }),
-});
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ messages: nextMessages, tool: activeTool, length: responseLength }),
+      });
       const data = await res.json();
       const assistantMsg = { role: "assistant", content: data.text || `Error: ${data.error}` };
       setMessages((m) => [...m, assistantMsg]);
+      if (typeof data.creditsRemaining === "number") setCredits(data.creditsRemaining);
       if (conversationId) saveMessage(conversationId, assistantMsg);
     } catch (err) {
       const assistantMsg = { role: "assistant", content: `Error: ${err.message}` };
@@ -263,9 +277,15 @@ export default function HubPage() {
               <Menu size={22} />
             </button>
             <LengthToggle value={responseLength} onChange={setResponseLength} />
-            <ThemeToggle />
-          </div>
-        </header>
+<ThemeToggle />
+</div>
+{credits !== null && (
+  <span className="flex items-center gap-1.5 rounded-full border border-line dark:border-line-dark px-3 py-1 text-xs font-medium text-muted dark:text-muted-dark">
+    <Zap size={12} className="text-violet" />
+    {credits} credit{credits === 1 ? "" : "s"}
+  </span>
+)}
+</header>
 
         <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-6 md:px-6">
           {messages.length === 0 && (
