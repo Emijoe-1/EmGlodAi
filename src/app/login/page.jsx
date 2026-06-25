@@ -9,13 +9,20 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
 
-  async function handleEmailLogin(e) {
-    e.preventDefault();
-    setError(null);
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) setError(error.message);
-    else setSent(true);
-  }
+ async function handleEmailLogin(e) {
+  e.preventDefault();
+  setError(null);
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}/app`,
+    },
+  });
+
+  if (error) setError(error.message);
+  else setSent(true);
+}
 
   async function handleOAuth(provider) {
     await supabase.auth.signInWithOAuth({
