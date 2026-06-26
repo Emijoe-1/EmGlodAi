@@ -15,9 +15,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-/*
 import { SplashScreen } from "@/components/SplashScreen";
-*/
+
 const FEATURES = [
   { icon: MessageSquare, label: "Chat" },
   { icon: Search, label: "Research" },
@@ -33,7 +32,7 @@ const FEATURES = [
 
 export default function LandingPage() {
   return (
-   // <SplashScreen>
+    <SplashScreen>
       <main className="min-h-screen">
       <header className="flex items-center justify-between px-6 py-5 md:px-10">
         <span className="font-display text-lg font-semibold">EmGlodAi</span>
@@ -83,6 +82,6 @@ export default function LandingPage() {
         </div>
       </section>
     </main>
-   // </SplashScreen>
+    </SplashScreen>
   );
 }
