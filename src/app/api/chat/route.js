@@ -95,7 +95,9 @@ async function callGroq(apiKey, model, groqMessages, useTools) {
   });
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error?.message || "Groq API error");
+    const err = new Error(data.error?.message || "Groq API error");
+    err.status = res.status;
+    throw err;
   }
   return data.choices?.[0]?.message;
 }
@@ -196,6 +198,12 @@ const { data: creditRow, error: creditError } = await supabaseAdmin
     const text = stripLatex(assistantMessage?.content) || "No response.";
     return Response.json({ text, creditsRemaining: newBalance });
   } catch (err) {
+    if (err.status === 429) {
+      return Response.json(
+        { error: "High traffic right now — please wait a few seconds and try again." },
+        { status: 429 }
+      );
+    }
     return Response.json({ error: err.message }, { status: 500 });
   }
 }
