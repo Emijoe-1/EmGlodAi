@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 // Keep this in sync with the "4s" hardcoded into the splash-progress
 // animation below — that bar's fill time should always match the total
 // splash duration so it finishes exactly as the splash disappears.
-const SPLASH_DURATION_MS = 4000;
+const SPLASH_DURATION_MS = 1000;
 const FADE_DURATION_MS = 700; // how long the fade-out transition takes
 
 // Wraps page content. Shows the logo full-screen on top of the page for
