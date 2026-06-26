@@ -129,7 +129,7 @@ export async function POST(req) {
 
   const { data: creditRow, error: creditError } = await supabaseAdmin
     .from("user_credits")
-    .select("credits")
+    .select("credits, last_reset_date")
     .eq("user_id", user.id)
     .single();
 
@@ -137,8 +137,21 @@ export async function POST(req) {
     return Response.json({ error: "Could not verify your credit balance." }, { status: 500 });
   }
 
-  if (creditRow.credits <= 0) {
-    return Response.json({ error: "You're out of credits." }, { status: 402 });
+  // Reset to the daily cap if it's a new day since the last reset — this
+  // replaces the balance entirely (it does not stack with leftover credits).
+  const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  let currentCredits = creditRow.credits;
+
+  if (creditRow.last_reset_date !== todayStr) {
+    currentCredits = 50;
+    await supabaseAdmin
+      .from("user_credits")
+      .update({ credits: currentCredits, last_reset_date: todayStr })
+      .eq("user_id", user.id);
+  }
+
+  if (currentCredits <= 0) {
+    return Response.json({ error: "You're out of credits for today. Come back tomorrow!" }, { status: 402 });
   }
 
   const { messages, tool, length } = await req.json();
@@ -187,7 +200,7 @@ export async function POST(req) {
       assistantMessage = await callGroq(apiKey, model, groqMessages, useTools);
     }
 
-    const newBalance = creditRow.credits - 1;
+    const newBalance = currentCredits - 1;
     await supabaseAdmin
       .from("user_credits")
       .update({ credits: newBalance, updated_at: new Date().toISOString() })
