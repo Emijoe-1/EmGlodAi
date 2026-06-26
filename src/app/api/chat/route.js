@@ -127,7 +127,7 @@ export async function POST(req) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: creditRow, error: creditError } = await supabaseAdmin
+const { data: creditRow, error: creditError } = await supabaseAdmin
     .from("user_credits")
     .select("credits")
     .eq("user_id", user.id)
