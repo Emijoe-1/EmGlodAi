@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 export const metadata = {
   metadataBase: new URL("https://emglodai.vercel.app"),
 
+  manifest: "/manifest.webmanifest",
+
   title: {
     default: "EmGlodAi — One box. Every tool.",
     template: "%s | EmGlodAi",
