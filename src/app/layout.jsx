@@ -12,6 +12,11 @@ export const metadata = {
   description:
     "Chat, research, generate images and video, plan your schedule, and more — all from a single command bar.",
 
+     icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+
   verification: {
   google: "xoaLjp_cHY4SLbcqmco0QOXGqfY-2Adklq-ox6Qq3KM",
 },
